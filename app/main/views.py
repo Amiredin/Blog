@@ -15,13 +15,13 @@ def home():
     '''
     # message = "Hello World"
     title="Terabyte"
-    posts = Posts.query.order_by('-id').all()
+    posts = Posts.query.order_by('id').all()
    
     
 
     message= 'Welcome to the Blog'
     # return "Hello, World"
-    return render_template('home.html',title=title,message=message,posts=posts,user=current_user)
+    return render_template('home.html',title=title,message=message,posts=posts,user=current_user ,id=id)
 
 @main.route('/user/<uname>')
 def profile(uname):
