@@ -14,8 +14,8 @@ def home():
     View root page function that returns the general news sources by category
     '''
     # message = "Hello World"
-    # title="Terabyte"
-    posts = Posts.query.order_by('-id').all()
+    title="blog"
+    posts = Posts.query.order_by().all()
    
         
 
