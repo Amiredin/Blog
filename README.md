@@ -18,17 +18,17 @@ Registered users can create and share their opinions while other users can read 
 ## Project Setup instructions
 Use the following commands to use this project.
 
-git clone my repository
-install python 3.6
-Install Postgresql
-cd Blog-It
-Navigate to the virtual environment using source virtual/bin/activate
-Edit the start.sh file with your SECRET_KEY
-Run chmod a+x start.sh
-atom . //For those using atom text editor.
-code . //For those using Visual Studio editor.
-Run ./start.sh
-Access the application on this localhost address http://127.0.0.1:5000
+* git clone my repository
+* install python 3.6
+* Install Postgresql
+* cd Blog-It
+* Navigate to the virtual environment using source virtual/bin/activate
+* Edit the start.sh file with your SECRET_KEY
+* Run chmod a+x start.sh
+* atom . //For those using atom text editor.
+* code . //For those using Visual Studio editor.
+* Run ./start.sh
+* Access the application on this localhost address http://127.0.0.1:5000
 ##Technologies used
 
 1. Python 3.6
