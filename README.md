@@ -1,6 +1,4 @@
 ## Blog Application
-
-AuthorBlog-It Application
 Author
 Amir Edin
 
@@ -41,7 +39,7 @@ Link to live site
 Here is a link to the live site
 
 ## Contact Me
-If you have any suggestions, additions or modifications on this project you can reach me via my email: amiredin@yahoo.com
+email: amiredin@yahoo.com
 
 ## License & Copyright information
 Copyright (c) Amir Edin
