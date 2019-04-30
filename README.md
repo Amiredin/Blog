@@ -9,7 +9,7 @@ Blog-It is a flask web application meant for users to post various blog contents
 
 
 * Travel
-* Fitness
+* Fitnes
 * Fashion
 
 
