@@ -1,5 +1,5 @@
 import urllib.request, json
-from .models import quotes
+from .models import Author
 
 
 
@@ -10,27 +10,26 @@ quotes = None
 
 
 def configure_request(app):
-    global api_key, quotes_url, 
+    global api_key, quotes_url 
     api_key = app.config['QUOTES_API_KEY']
     quotes_url = app.config['QUOTES_BASE_URL']
     
 
 
-
-def process_results(sources_list):
+def get_quote():
     '''
-    Function that processes the json results
+    Function that gets the json response to our url request
     '''
-    quotes_results = []
 
-    for quotes in quotes_list:
-        id = quotes.get('id')
-        description = quotes.get('description')
-        url = quotes.get('url')
-       
+    with urllib.request.urlopen('http://quotes.stormconsultancy.co.uk/random.json') as url:
+        get_sources_data = url.read()
+        get_sources_response = json.loads(get_sources_data)
 
-        if url:
-            quotes_object = Sources(id,name,description,url)
-            quotes_results.append(quotes_object)
+        quote_object= None
+        if get_sources_response :
+                author= get_sources_response.get('author')
+                quote = get_sources_response.get('quote')
+        quote_object= Author(author,quote)
+
     
-    return sources_results
+    return quote_object

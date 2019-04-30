@@ -1,77 +1,63 @@
-{% macro displayPitches(my_pitches) %} 
-{% for pitch in my_pitches %}
-<div class="col-md-12 pitches" style="border: 0.1px solid rgb(4, 4, 36);margin: 3%;padding: 5%;font-family: Josefin Sans;font-size: 125%;">
-    {% if pitch.user.profile_pic_path %}
-    <p>
-        <img src="{{url_for('static',filename = pitch.user.profile_pic_path)}}" alt="" class="img-thumbnail">
-        <a href="/user/{{pitch.user.username}}&{{pitch.user.id}}">{{pitch.user.username|capitalize}}</a>
-    </p>
-    {% else %}
-    <p>
-        <img src="{{url_for('static',filename = 'photos/avatar.png')}}" alt="" class="img-thumbnail">
-        <a href="/user/{{pitch.user.username}}&{{pitch.user.id}}">{{pitch.user.username|capitalize}}</a>
-    </p>
-    {% endif %}
-    <p>{{pitch.pitch_content}}</p>
-    <p class="small"> Category: {{pitch.pitch_category}} </p>
-    <hr>
-    <ul class="list-inline">
-        <li class="list-inline-item">
-            <a href="/pitch/{{pitch.id}}">Add Comment</a>
-        </li>
-        <li class="list-inline-item">
-            <a class="btn btn-primary" href="{{url_for('main.like',id=pitch.id)}}">
-                <i class="fa fa-thumbs-up fa-1x"></i>
-            </a>
-        </li>
-        <li class="list-inline-item">
-            <a class="btn btn-warning" href="{{url_for('main.dislike',id=pitch.id)}}">
-                <i class="fa fa-thumbs-down fa-1x"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-{% endfor %} 
-{% endmacro %} 
 
-{% macro displayComments(my_comments) %} 
-{% for comment in my_comments %}
-<hr>
-<div class="comment">
-    <p>
-        {% if comment.user.profile_pic_path %}
-            <img src="{{url_for('static',filename = comment.user.profile_pic_path)}}" alt="" class="img-thumbnail">
-        {% else %}
-            <img src="{{url_for('static',filename = 'photos/avatar.png')}}" alt="" class="img-thumbnail">
-        {% endif %}
-        <a href="/user/{{comment.user.username}}&{{comment.user.id}}">{{comment.user.username|capitalize}}</a>
-    </p>
-    <p>{{comment.comment_content}}</p>
-</div>
-{% endfor %} {% endmacro %} {% macro displayCategory(my_categories) %} {% for category in my_categories %}
-<div class="col-md-12 pitches">
-    <p>
-        <a href="/user/{{category.user.username}}&{{category.user.id}}">{{category.user.username|capitalize}}</a>
-    </p>
-    <p>{{category.pitch_content}}</p>
-    <p class="small"> Category: {{category.pitch_category}} </p>
-    <hr>
-    <ul class="list-inline">
-        <li class="list-inline-item">
-            <a href="/pitch/{{category.id}}">Add Comment</a>
-        </li>
-        <li class="list-inline-item">
-            <a class="btn btn-primary" href="{{url_for('main.like',id=category.id)}}">
-                <i class="fa fa-thumbs-up fa-1x"></i>
-            </a>
-        </li>
-        <li class="list-inline-item">
-            <a class="btn btn-warning" href="{{url_for('main.dislike',id=category.id)}}">
-                <i class="fa fa-thumbs-down fa-1x"></i>
-            </a>
-        </li>
-    </ul>
-</div>
+{% macro displayBlogs(my_blog_list) %}
+{% for blogs in my_blog_list %}
 
-{% endfor %} 
-{% endmacro %}0
+<div class="card border-info mb-3 spacing" style="min-width: 20rem;max-width: 20rem;">
+        <div class="card-body">
+          <h4 class="card-title">{{blogs.title}}</h4>
+          <p class="card-text">{{blogs.content| truncate(100)}}</p>
+          <p>Posted By: <strong>{{blogs.user.username}}</strong></p>
+          <p>Date posted {{blogs.posted.strftime('%Y-%m-%d')}}</p>
+          <a href="/blog/{{blogs.id}}" class="card-link btn btn-success float-right">Full Blog</a>
+        </div>
+      </div>
+   
+{% endfor %}
+{% endmacro%}
+
+{% macro displayComments(my_comments) %}
+{% for comments in my_comments %}
+<div class="card border-dark comment" style="min-width: 20rem;max-width: 20rem;">
+  <div class="card-header">Comments</div>
+  <div class="card-body text-dark">
+    <h5 class="card-title">{{comments.name}}</h5>
+    <p class="card-text">{{comments.comment}}</p>        
+  </div>
+  
+  <div class="card-footer bg-transparent">
+    <div >
+        <button class="btn btn-danger float-right" data-toggle="modal" data-target="#deleteModalRight">Delete</button> 
+    </div>
+  </div>
+
+</div>
+<!-- Full Height Modal Right -->
+<div class="modal fade" id="deleteModalRight" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+aria-hidden="true">
+
+<!-- Add class .modal-full-height and then add class .modal-right (or other classes from list above) to set a position to the modal -->
+<div class="modal-dialog modal-sm modal-top" role="document">
+
+
+<div class="modal-content">
+<div class="modal-header">
+  <h4 class="modal-title w-100" id="myModalLabel">Delete Comment</h4>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+    Confirm you want to delete this comment
+</div>
+<div class="modal-footer justify-content-center">
+  <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+  <form action="{{url_for('main.delete_comment',id=comments.id)}}" method="POST">
+      <button type="submit" class="btn btn-danger">Delete</button>
+  </form>      
+</div>
+</div>
+</div>
+</div>
+<!-- Full Height Modal Right -->
+{% endfor %}
+{% endmacro %}

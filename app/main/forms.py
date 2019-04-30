@@ -1,27 +1,23 @@
 
 from flask_wtf import FlaskForm
-from wtforms import StringField,TextAreaField,SelectField,SubmitField
-from wtforms.validators import Required
+from wtforms import StringField, TextAreaField, SubmitField, SelectField
+from wtforms.validators import Required,Email
 
-class PostsForm(FlaskForm):
-    category = SelectField('Blog Category',
-                              choices=[('Select','Select Category'), ('Celebrity Gossip', 'Celebrity Gossip'), ('Fashion', 'Fashion'),
-                                       ('Music', 'Music'), ('Food', 'Food'),('Sports', 'Sports'),
-                                       ('Technology', 'Technology'),('Travel', 'Travel'),('Nature', 'Nature')                                       
-                                       ], validators=[Required()])
-    title = StringField('Blog Title',validators = [Required()])
-    body = TextAreaField('Blog Content',validators = [Required()])
-    submit = SubmitField('Post')
-    
-class CommentsForm(FlaskForm):
-    comment = TextAreaField('Comment on post',validators = [Required()])
-    submit = SubmitField('Submit')
 class UpdateProfile(FlaskForm):
-    bio = TextAreaField('Tell us about you.',validators = [Required()])
+    bio = TextAreaField('Tell us something about you.',validators = [Required()])
     submit = SubmitField('Submit')
+
+class BlogForm(FlaskForm):
+    title = StringField('Blog Title',validators=[Required()])
+    blog_body = TextAreaField('Write Blog Content',validators=[Required()])
+    blog_category = SelectField('Blog Category',choices=[('Sports-Blog','Sports'),('Travel-Blog','Travel'),('Fitness-Blog','Fitness'),('Fashion-Blog','Fashion'),('Food-Blog','Food'),('Political-Blog','Politics')],validators=[Required()])
+    submit = SubmitField('Submit Blog')
+
+class CommentForm(FlaskForm):
+    name = StringField('Enter Your Name',validators=[Required()])
+    comment = TextAreaField('Comments', validators=[Required()])
+    submit = SubmitField('Submit Comment')
 
 class SubscribeForm(FlaskForm):
-    email = StringField("Email",validators = [Required()])
-    name = StringField("Your Name",validators = [Required()])
-    submit= SubmitField('Subscribe')
-
+    subscriber_name = StringField('Enter your Full Name',validators=[Required()])
+    subscriber_email = StringField('Enter your Email',validators=[Required(),Email()])

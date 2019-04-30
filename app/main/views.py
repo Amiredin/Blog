@@ -1,27 +1,25 @@
-from flask import render_template,request,redirect,url_for, abort, flash
+from flask import render_template,redirect,url_for,request,abort,flash
 from . import main
+from .forms import UpdateProfile,BlogForm,CommentForm,SubscribeForm
+from .. import db,photos
+from ..models import User,Blog,Comment,Subscriber
 from flask_login import login_required,current_user
-from .forms import PostsForm,CommentsForm,UpdateProfile,SubscribeForm
-from ..models import Posts,Comments,User,Subscribe
-from .. import photos, db
-from datetime import datetime
+from .. import db,photos
+import requests
+import json
 
 @main.route('/')
-# @login_required
-def home():
+def index():
+    random = requests.get('http://quotes.stormconsultancy.co.uk/random.json').json()
 
-    '''
-    View root page function that returns the general news sources by category
-    '''
-    # message = "Hello World"
-    title="Terabyte"
-    posts = Posts.query.order_by('id').all()
-   
+
     
+    fitness = Blog.get_blogs('Fitness-Blog')
+    fashion = Blog.get_blogs('Fashion-Blog')
+    food = Blog.get_blogs('Food-Blog')
+    politics = Blog.get_blogs('Political-Blog')
 
-    message= 'Welcome to the Blog'
-    # return "Hello, World"
-    return render_template('home.html',title=title,message=message,posts=posts,user=current_user ,id=id)
+    return render_template('index.html', )
 
 @main.route('/user/<uname>')
 def profile(uname):
@@ -31,6 +29,8 @@ def profile(uname):
         abort(404)
 
     return render_template("profile/profile.html", user = user)
+
+
 @main.route('/user/<uname>/update',methods = ['GET','POST'])
 @login_required
 def update_profile(uname):
@@ -50,107 +50,145 @@ def update_profile(uname):
 
     return render_template('profile/update.html',form =form)
 
-@main.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.utcnow()
+@main.route('/user/<uname>/update/pic',methods= ['POST'])
+@login_required
+def update_pic(uname):
+    user = User.query.filter_by(username = uname).first()
+    if 'photo' in request.files:
+        filename = photos.save(request.files['photo'])
+        path = f'photos/{filename}'
+        user.profile_pic_path = path
         db.session.commit()
+    return redirect(url_for('main.profile',uname=uname))
 
-@main.route('/post/new',methods = ['GET','POST'])
+@main.route('/new-blog', methods = ['GET','POST'])
 @login_required
-def new_post():
-    '''
-    View pitch function that returns the pitch page and data
-    '''
-    form = PostsForm()
+def new_blog():
+    blog_form = BlogForm()
+    if blog_form.validate_on_submit():
+        title = blog_form.title.data
+        blog = blog_form.blog_body.data
+        category = blog_form.blog_category.data
 
-    if form.validate_on_submit() and form.category.data != 'Select':
-        body = form.body.data
-        category = form.category.data
-        title = form.title.data
+        new_blog = Blog(title = title, content = blog, category = category,user = current_user)
+        new_blog.save_blog()
 
-        new_post = Posts(body=body,category=category,title=title,user_id=current_user.id)
-        new_post.save_post()
-        flash('Your post has been created!', 'success')
-        return redirect(url_for('main.home'))
+        return redirect(url_for('main.index'))
 
-    return render_template('new_post.html', pitch_form = form)
-@main.route("/pitch/<int:id>/update", methods=['GET', 'POST'])
+    title = 'New Blog'
+    return render_template('new_blog.html', title = title, blog_form = blog_form)
+
+@main.route('/blogs/sports')
+def sports():
+    blogs = Blog.get_blogs('Sports-Blog')
+
+    return render_template('sports.html',blogs = blogs)
+
+@main.route('/blogs/travel')
+def travel():
+    blogs = Blog.get_blogs('Travel-Blog')
+
+    return render_template('travel.html',blogs = blogs)
+
+@main.route('/blogs/fitness')
+def fitness():
+    blogs = Blog.get_blogs('Fitness-Blog')
+
+    return render_template('fitness.html',blogs = blogs)
+
+@main.route('/blogs/fashion')
+def fashion():
+    blogs = Blog.get_blogs('Fashion-Blog')
+
+    return render_template('fashion.html',blogs = blogs)
+
+@main.route('/blogs/food')
+def food():
+    blogs = Blog.get_blogs('Food-Blog')
+
+    return render_template('food.html',blogs = blogs)
+
+@main.route('/blogs/politics')
+def politics():
+    blogs = Blog.get_blogs('Political-Blog')
+
+    return render_template('politics.html',blogs = blogs)
+
+@main.route('/blog/<int:id>', methods = ["GET","POST"])
+def blog(id):
+    blog = Blog.get_blog(id)
+    posted_date = blog.posted.strftime('%b %d, %Y')
+
+    comment_form = CommentForm()
+    if comment_form.validate_on_submit():
+
+        name = comment_form.name.data
+        comment = comment_form.comment.data
+
+        new_comment = Comment(name = name, comment = comment, blogit = blog)
+        new_comment.save_comment()
+
+        return redirect(url_for('main.blog',id=id))
+    
+    comments = Comment.get_comments(blog)
+    return render_template('full_blog.html', blog = blog, comment_form = comment_form, comments = comments, date = posted_date)
+
+@main.route('/blog/<int:id>/update', methods = ['GET','POST'])
 @login_required
-def update_post(id):
-    post = Posts.query.get_or_404(id)
-    if post.user != current_user:
-        abort(403)
-    form = PostsForm()
+def update_blog(id):
+    blog = Blog.get_blog(id)
+    form = BlogForm()
     if form.validate_on_submit():
-        post.title = form.title.data
-        post.body = form.body.data
+        blog.title = form.title.data
+        blog.content = form.blog_body.data
+        blog.category = form.blog_category.data
         db.session.commit()
-        flash('Your post has been updated!', 'success')
-        return redirect(url_for('.post',id=post.id))
+        return redirect(url_for('main.blog', id = id))
     elif request.method == 'GET':
-        form.title.data = post.title
-        form.body.data = post.body
-    return render_template('new_post.html', title='Update Post',
-                           pitch_form=form)
+        form.title.data = blog.title
+        form.blog_body.data = blog.content
+        form.blog_category.data = blog.category
+    return render_template('new_blog.html', blog_form = form, id=id)
 
-@main.route("/pitch/<int:id>/delete", methods=['POST'])
+@main.route('/blog/delete/<int:id>', methods = ['GET', 'POST'])
 @login_required
-def delete_post(id):
-    post = Posts.query.get_or_404(id)
-    if post.user != current_user:
-        abort(403)
-    db.session.delete(post)
+def delete_blog(id):
+    blog = Blog.get_blog(id)
+    db.session.delete(blog)
     db.session.commit()
-    flash('Your post has been deleted!', 'success')
-    return redirect(url_for('main.home'))
 
+    flash('Blog has been deleted')
+    return redirect(url_for('main.index'))
+    
+    return render_template('full_blog.html', id=id, blog = blog)
 
-@main.route("/pitch/comment/<int:id>/delete", methods=['POST'])
+@main.route('/blog/comment/delete/<int:id>', methods = ['GET', 'POST'])
 @login_required
 def delete_comment(id):
-    comment = Comments.query.get_or_404(id)
+    comment = Comment.query.filter_by(id=id).first()
+    blog_id = comment.blog
+    Comment.delete_comment(id)
 
-    db.session.delete(comment)
-    db.session.commit()
-    flash('Comment has been deleted!', 'success')
-    return redirect(url_for('main.home'))
-
-@main.route("/pitch/<int:id>/full")
-def post(id):
-    post = Posts.query.get_or_404(id)
-    return render_template('post.html', title=post.title, post=post)
+    flash('Comment has been deleted')
+    return redirect(url_for('main.blog',id=blog_id))
 
 
-@main.route('/pitch/<int:id>',methods = ['GET', 'POST'])
-@login_required
-def comment(id):
+@main.route('/blogs/latest', methods = ['GET','POST'])
+def latest_blogs():
+    blogs = Blog.query.order_by(Blog.posted.desc()).all()
 
-    comments_form = CommentsForm()
-    # pitch = Pitches.query.get(pitch_id)
-    posts = Posts.query.filter_by(id=id).first()
-    print(posts)
-    if comments_form.validate_on_submit():
-        comment = comments_form.comment.data
+    return render_template('latest.html',blogs = blogs)
 
-        new_comment = Comments(the_comment=comment,posts_id=posts.id, user_id = current_user.id)
-        db.session.add(new_comment)
+@main.route('/subscription',methods=['GET','POST'])
+def subscription():
+    subscription_form = SubscribeForm()
+
+    if subscription_form.validate_on_submit():
+        new_subscriber = Subscriber(subscriber_name=subscription_form.subscriber_name.data,subscriber_email=subscription_form.subscriber_email.data)
+
+        db.session.add(new_subscriber)
         db.session.commit()
 
-    comments_list = Comments.query.filter_by(posts_id=id).order_by("-id")
-    print(comments_list)
+        return redirect(url_for('main.index'))    
 
-    return render_template('comments.html', comments_form=comments_form,comments_list=comments_list)
-
-@main.route('/subscribe',methods=["GET","POST"])
-def subscribe():
-    form=SubscribeForm()
-
-    if form.validate_on_submit():
-        subscriber = Subscribe(name=form.name.data,email=form.email.data)
-        db.session.add(subscriber)
-        db.session.commit()
-        flash('You have sucessfully subscribed to get notifications.')
-        return redirect(url_for('main.home'))
-        title = 'Subscribe'
-    return render_template('subscribe.html',subscribe_form=form)
+    return render_template('subscription.html',subscription_form = subscription_form)
